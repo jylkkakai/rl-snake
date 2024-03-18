@@ -10,35 +10,37 @@ class Snakes:
         self.max_score = max_score
         self.score = 0
         self.action = 0
-        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.reward = 0
         self.food = [int(self.width / 2), int(self.height / 2)]
         self.snake = [[4, 10], [4, 9], [4, 8]]
         self.exit_game = False
         self.prevdist = 21
+        self.direction = [2, 3, 0]  # left, straight, right
 
     def step(self, action):
-        # prevAction = self.action
+        prevAction = self.action
         self.action = action
+
+        if action == 0:  # left
+            self.direction[0] = (self.direction[0] - 1) % 4
+            self.direction[1] = (self.direction[1] - 1) % 4
+            self.direction[2] = (self.direction[2] - 1) % 4
+        elif action == 2:  # right
+            self.direction[0] = (self.direction[0] + 1) % 4
+            self.direction[1] = (self.direction[1] + 1) % 4
+            self.direction[2] = (self.direction[2] + 1) % 4
 
         done = False
         food_found = False
 
-        # if (
-        #     (self.action == 0 and prevAction == 1)
-        #     or (self.action == 1 and prevAction == 0)
-        #     or (self.action == 2 and prevAction == 3)
-        #     or (self.action == 3 and prevAction == 2)
-        # ):
-        #     self.action = prevAction
-
-        if self.action == 0:  # right
-            self.snake.insert(0, [self.snake[0][0], self.snake[0][1] + 1])
-        elif self.action == 1:  # left
+        if self.direction[1] == 0:  # west
             self.snake.insert(0, [self.snake[0][0], self.snake[0][1] - 1])
-        elif self.action == 2:  # up
+        elif self.direction[1] == 1:  # north
             self.snake.insert(0, [self.snake[0][0] - 1, self.snake[0][1]])
-        elif self.action == 3:  # down
+        elif self.direction[1] == 2:  # east
+            self.snake.insert(0, [self.snake[0][0], self.snake[0][1] + 1])
+        elif self.direction[1] == 3:  # south
             self.snake.insert(0, [self.snake[0][0] + 1, self.snake[0][1]])
         else:
             self.exit_game = True
@@ -100,20 +102,41 @@ class Snakes:
             self.reward = reward
 
     def get_state(self):
+        # y = self.snake[0][1]
+        # x = self.snake[0][0]
+        self.state[0] = self.dist_to_edge(self.direction[0])
+        self.state[1] = self.dist_to_edge(self.direction[1])
+        self.state[2] = self.dist_to_edge(self.direction[2])
+        self.state[3] = self.dist_to_apple(self.direction[0])
+        self.state[4] = self.dist_to_apple(self.direction[1])
+        self.state[5] = self.dist_to_apple(self.direction[2])
+        self.state[6] = self.find_nearest(self.direction[0])
+        self.state[7] = self.find_nearest(self.direction[1])
+        self.state[8] = self.find_nearest(self.direction[2])
+
+    def dist_to_edge(self, dirr):
         y = self.snake[0][1]
         x = self.snake[0][0]
-        self.state[0] = y
-        self.state[1] = self.width - 1 - x
-        self.state[2] = self.height - 1 - y
-        self.state[3] = x
-        self.state[4] = y - self.food[1] if y - self.food[1] >= 0 else 100
-        self.state[5] = self.food[0] - x if self.food[0] - x >= 0 else 100
-        self.state[6] = self.food[1] - y if self.food[1] - y >= 0 else 100
-        self.state[7] = x - self.food[0] if x - self.food[0] >= 0 else 100
-        self.state[8] = self.find_nearest(0)
-        self.state[9] = self.find_nearest(1)
-        self.state[10] = self.find_nearest(2)
-        self.state[11] = self.find_nearest(3)
+        if dirr == 0:  # west
+            return x
+        elif dirr == 1:
+            return y
+        elif dirr == 2:
+            return self.width - 1 - x
+        else:
+            return self.height - 1 - y
+
+    def dist_to_apple(self, dirr):
+        y = self.snake[0][1]
+        x = self.snake[0][0]
+        if dirr == 0:
+            return x - self.food[0] if self.food[0] - x >= 0 else 100
+        elif dirr == 1:
+            return y - self.food[1] if y - self.food[1] >= 0 else 100
+        elif dirr == 2:
+            return self.food[0] - y if x - self.food[0] >= 0 else 100
+        else:
+            return self.food[1] - y if self.food[1] - y >= 0 else 100
 
     def find_nearest(self, dirr):
         head = self.snake[0]
