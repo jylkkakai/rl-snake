@@ -3,11 +3,11 @@ from random import randint
 
 
 class Snakes:
-    def __init__(self, width, height, episode, max_score):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.game_no = episode
-        self.max_score = max_score
+        self.game_no = 0
+        self.max_score = 0
         self.score = 0
         self.action = 0
         self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -19,7 +19,7 @@ class Snakes:
         self.direction = [2, 3, 0]  # left, straight, right
 
     def step(self, action):
-        prevAction = self.action
+        # prevAction = self.action
         self.action = action
 
         if action == 0:  # left
@@ -74,6 +74,34 @@ class Snakes:
         self.get_reward(done, food_found)
 
         return [self.state, self.reward, done]
+
+    def reset(self, game_nro, max_score):
+
+        self.game_no = game_nro
+        self.max_score = max_score
+        self.score = 0
+        self.action = 0
+        self.state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.reward = 0
+        self.food = [randint(1, self.width - 2), randint(1, self.height - 2)]
+        while self.food in self.snake:
+            self.food = [
+                randint(1, self.width - 2),
+                randint(1, self.height - 2),
+            ]
+        # self.food = [int(self.width / 2), int(self.height / 2)]
+        headx = randint(1, self.width - 1)
+        heady = randint(4, self.height - 4)
+        self.snake = [[headx, heady], [headx, heady - 1], [headx, heady - 2]]
+        self.exit_game = False
+        self.prevdist = 21
+        self.direction = [2, 3, 0]
+
+    def set_gameno(self, gamenro):
+        self.game_no = gamenro
+
+    def set_maxscore(self, maxscore):
+        self.max_score = maxscore
 
     def get_snake(self):
         return self.snake

@@ -103,6 +103,9 @@ class DQNAgent:
     def get_lr(self):
         return self.learning_rate
 
+    def save_model(self):
+        self.model.save("model/model-" + str(self.counter) + ".keras")
+
 
 def write_log(filename, log):
     with open(filename, "a") as file:
@@ -114,7 +117,7 @@ def write_log(filename, log):
 #########################################################
 game = True  # False to disable the game screen rendering
 game_screen = None
-prev_epochs = 0  # If training is continued from pretrained saved model
+prev_epochs = 500  # If training is continued from pretrained saved model
 epsilon = 0.50  # Initial exploration rate
 
 
@@ -131,11 +134,14 @@ scores = deque(maxlen=100)
 counter = 0
 if game:
     game_screen = GameScreen(width, height)
+
 agent = DQNAgent(state_size, action_size, prev_epochs, epsilon)
+snakes = Snakes(width, height)
 
 for e in range(prev_epochs, episodes):
     done = False
-    snakes = Snakes(width, height, e, max_score)
+    # snakes = Snakes(width, height, e, max_score)
+    snakes.reset(e, max_score)
     state, reward, done = snakes.step(0)
     state = np.asarray(state)
     state = np.reshape(state, [1, state_size])
@@ -192,6 +198,7 @@ for e in range(prev_epochs, episodes):
     if exit:
         break
 print("Max score: {}".format(max_score))
+agent.save_model()
 if game:
     game_screen.quit()
     exit()
